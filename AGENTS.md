@@ -85,6 +85,10 @@ Nunca almacenes cadenas de imágenes o archivos pesados en documentos de Firesto
 - No dejes código comentado ("código muerto") ni console.logs de prueba a menos que se solicite explícitamente.
 - Prioriza la inmutabilidad de los datos.
 
+## 6. Reglas Estrictas de UI, Estilos y Colores (StyleSheet y Theme)
+- **Prohibición Total de Estilos Inline:** NUNCA escribas estilos directamente dentro de los componentes JSX (ej. `style={{ ... }}` o arreglos de estilo inline). Todos los estilos deben ser definidos formalmente en el objeto `StyleSheet.create`.
+- **Centralización Obligatoria de Colores (Theme):** Queda estrictamente PROHIBIDO escribir códigos de colores en hexadecimal (ej: `'#6EE7B7'`, `'#ECFDF5'`, `'#A7F3D0'`) o cadenas de color directamente en pantallas o componentes. Todos los colores de la aplicación DEBEN ser registrados y consumidos exclusivamente a través del objeto `COLORES` definido en `src/shared/theme/colores.ts`.
+
 agromind/
 │
 ├── src/
