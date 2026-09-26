@@ -1,6 +1,5 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { COLORES } from '../../../shared/theme/colores';
 
 export function SeccionRecientes() {
@@ -18,20 +17,28 @@ export function SeccionRecientes() {
 function TarjetaReciente({ nombre, subtitulo, valorPrincipal, valorSecundario }: any) {
   return (
     <View style={styles.tarjetaRecienteOuter}>
-      <BlurView intensity={40} tint="light" style={styles.tarjetaRecienteInner}>
-        <View style={styles.filaReciente}>
-          <Text style={styles.textoNombreReciente}>{nombre}</Text>
-          <View style={styles.contenedorValor}>
-            <View style={[styles.puntito, { backgroundColor: COLORES.esmeraldaNeon }]} />
-            <Text style={styles.textoValorPrincipal}>{valorPrincipal}</Text>
+      <BlurView intensity={80} tint="light" style={styles.tarjetaRecienteInner}>
+        
+        {/* Contenido alineado al estilo Apple Wallet / Health Widget */}
+        <View style={styles.contenidoWidget}>
+          
+          {/* Ícono Izquierdo (Limpieza total) */}
+          <View style={styles.circuloIcono}>
+            <Text style={styles.emojiIcono}>🐮</Text>
           </View>
-        </View>
-        <View style={[styles.filaReciente, { marginTop: 4 }]}>
-          <Text style={styles.textoSubtituloReciente}>{subtitulo}</Text>
-          <View style={styles.contenedorValor}>
-            <View style={[styles.puntito, { backgroundColor: COLORES.textoSecundario }]} />
+          
+          {/* Textos Centrales */}
+          <View style={styles.cuerpoTextos}>
+            <Text style={styles.textoNombreReciente}>{nombre}</Text>
+            <Text style={styles.textoSubtituloReciente}>{subtitulo}</Text>
+          </View>
+
+          {/* Valores a la derecha */}
+          <View style={styles.seccionValores}>
+            <Text style={styles.textoValorPrincipal}>{valorPrincipal} <Text style={styles.unidadTexto}>L</Text></Text>
             <Text style={styles.textoValorSecundario}>{valorSecundario}</Text>
           </View>
+
         </View>
       </BlurView>
     </View>
@@ -53,52 +60,84 @@ const styles = StyleSheet.create({
   },
   scrollRecientes: {
     paddingRight: 20,
+    paddingBottom: 24, // Espacio vital para que la sombra y la tarjeta no se corten abajo
+    paddingTop: 8,
     gap: 12,
   },
   tarjetaRecienteOuter: {
-    width: 220,
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.7)',
+    width: 260, 
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.9)', 
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05, 
+    shadowRadius: 16,
+    elevation: 4, // Ayuda al renderizado en Android
   },
   tarjetaRecienteInner: {
     padding: 16,
-    backgroundColor: 'rgba(235, 238, 240, 0.55)',
+    backgroundColor: 'rgba(255, 255, 255, 0.65)',
+    borderRadius: 23, // Ligeramente menor para que calce perfecto en el outer sin desbordar
+    overflow: 'hidden',
   },
-  filaReciente: {
+  contenidoWidget: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  circuloIcono: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  emojiIcono: {
+    fontSize: 20,
+  },
+  cuerpoTextos: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  seccionValores: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
   textoNombreReciente: {
     fontSize: 16,
-    fontWeight: '800',
-    color: COLORES.textoOscuro,
+    fontWeight: '700',
+    color: '#000000', // Negro puro Apple
+    letterSpacing: -0.3,
   },
   textoSubtituloReciente: {
     fontSize: 13,
     fontWeight: '500',
-    color: COLORES.textoSecundario,
-  },
-  contenedorValor: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  puntito: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    color: '#8E8E93', // Gris típico iOS
+    marginTop: 2,
   },
   textoValorPrincipal: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '800',
-    color: COLORES.textoOscuro,
+    color: '#000000',
+    letterSpacing: -0.5,
+  },
+  unidadTexto: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8E8E93',
   },
   textoValorSecundario: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORES.textoSecundario,
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORES.esmeraldaNeon, // Damos el toque positivo en el porcentaje
+    marginTop: 2,
   },
 });

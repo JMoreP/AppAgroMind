@@ -1,24 +1,23 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
+import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { COLORES } from '../theme/colores';
-import { IconoOrdeno, IconoArete, IconoSalud } from './IconosModulos';
+import { IconoArete, IconoOrdeno, IconoSalud } from './IconosModulos';
 
 export function SeccionModulos() {
   return (
     <View style={styles.contenedorModulos}>
       <Text style={styles.tituloSeccion}>LIVESTOCK OVERVIEW</Text>
       <View style={styles.filaModulos}>
-        <TarjetaModulo titulo="Ordeño Rápido" subtitulo="Quick Milking" Icono={IconoOrdeno} />
-        <TarjetaModulo titulo="Búsqueda por Arete" subtitulo="Tag Search" Icono={IconoArete} />
-        <TarjetaModulo titulo="Salud & Dosis" subtitulo="Health & Dosage" Icono={IconoSalud} />
+        <TarjetaModulo titulo="Ordeño Rápido" Icono={IconoOrdeno} iconSize={86} />
+        <TarjetaModulo titulo="Búsqueda por Arete" Icono={IconoArete} />
+        <TarjetaModulo titulo="Salud & Dosis" Icono={IconoSalud} />
       </View>
     </View>
   );
 }
 
-function TarjetaModulo({ titulo, subtitulo, Icono }: { titulo: string; subtitulo: string; Icono: any }) {
+function TarjetaModulo({ titulo, Icono, iconSize = 64 }: { titulo: string; Icono: any; iconSize?: number }) {
   return (
     <View style={styles.tarjetaModuloOuter}>
       <View style={styles.glowingBlobModulo}>
@@ -34,9 +33,10 @@ function TarjetaModulo({ titulo, subtitulo, Icono }: { titulo: string; subtitulo
       </View>
 
       <BlurView intensity={65} tint="light" style={styles.tarjetaModuloInner}>
-        <Icono size={52} />
+        <View style={styles.contenedorIcono}>
+          <Icono size={iconSize} />
+        </View>
         <Text style={styles.tituloModulo}>{titulo}</Text>
-        <Text style={styles.subtituloModulo} numberOfLines={2}>{subtitulo}</Text>
       </BlurView>
     </View>
   );
@@ -78,23 +78,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.45)',
     borderRadius: 18,
-    padding: 10,
-    justifyContent: 'flex-start',
+    paddingHorizontal: 8,
+    paddingBottom: 16,
+    paddingTop: 10,
+    alignItems: 'center',
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.7)',
   },
-  tituloModulo: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: COLORES.textoOscuro,
-    marginTop: 12,
-    marginBottom: 4,
-    lineHeight: 16,
+  contenedorIcono: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  subtituloModulo: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: COLORES.textoSecundario,
-    lineHeight: 12,
+  tituloModulo: {
+    fontSize: 16, // Aumento significativo de tamaño
+    fontWeight: '900',
+    color: '#000000', // Alto contraste
+    textAlign: 'center',
+    marginTop: 0,
+    minHeight: 36, // Obliga a que todos los textos ocupen el mismo bloque
+    textAlignVertical: 'center',    lineHeight: 18,
+    letterSpacing: -0.3,
   },
 });

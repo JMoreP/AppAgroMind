@@ -1,5 +1,4 @@
-import React from 'react';
-import Svg, { Defs, LinearGradient, Stop, Rect, Path, Circle } from 'react-native-svg';
+import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 
 export function IconoOrdeno({ size = 48 }: { size?: number }) {
   return (

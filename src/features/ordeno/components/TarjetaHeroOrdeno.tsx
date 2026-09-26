@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
-import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, RadialGradient, Stop, Path, LinearGradient } from 'react-native-svg';
 import { COLORES } from '../../../shared/theme/colores';
 
 export function TarjetaHeroOrdeno({ totalLitros = '480.5 L' }: { totalLitros?: string }) {
@@ -21,8 +21,34 @@ export function TarjetaHeroOrdeno({ totalLitros = '480.5 L' }: { totalLitros?: s
           </Svg>
         </View>
 
+        {/* Gráfico Sparkline de Fondo (Tendencia de Ordeño) */}
+        <View style={styles.sparklineContainer}>
+          <Svg width="100%" height="80" viewBox="0 0 300 80" preserveAspectRatio="none">
+            <Defs>
+              <LinearGradient id="gradSpark" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0%" stopColor={COLORES.esmeraldaNeon} stopOpacity="0.5" />
+                <Stop offset="100%" stopColor={COLORES.esmeraldaNeon} stopOpacity="0" />
+              </LinearGradient>
+            </Defs>
+            <Path 
+              d="M 0 60 Q 30 20 60 40 T 120 30 T 180 50 T 240 20 T 300 35 L 300 80 L 0 80 Z" 
+              fill="url(#gradSpark)" 
+            />
+            <Path 
+              d="M 0 60 Q 30 20 60 40 T 120 30 T 180 50 T 240 20 T 300 35" 
+              fill="none" 
+              stroke={COLORES.esmeraldaNeon} 
+              strokeWidth="3" 
+              strokeLinecap="round" 
+            />
+          </Svg>
+        </View>
+
         {/* Tarjeta Interna (Superficie de Cristal Auténtico) */}
         <BlurView intensity={70} tint="light" style={styles.tarjetaInner}>
+          <View style={styles.badgeCrecimiento}>
+            <Text style={styles.textoBadgeCrecimiento}>▲ 12.5% vs ayer</Text>
+          </View>
           <Text style={styles.textoLitrosCentral}>{totalLitros}</Text>
           <Text style={styles.etiquetaTotalLeche}>TOTAL MILK TODAY</Text>
         </BlurView>
@@ -65,25 +91,49 @@ const styles = StyleSheet.create({
   },
   tarjetaInner: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
     borderRadius: 28, // 30 (outer) - 2 (padding)
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
+    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
-  textoLitrosCentral: {
-    fontSize: 36,
-    fontWeight: '800',
-    color: COLORES.textoOscuro,
-    letterSpacing: -0.5,
+  sparklineContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 80,
+    opacity: 0.6,
   },
-  etiquetaTotalLeche: {
+  badgeCrecimiento: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+  },
+  textoBadgeCrecimiento: {
     fontSize: 12,
     fontWeight: '700',
+    color: '#047857', // Un verde más oscuro para legibilidad
+    letterSpacing: 0.5,
+  },
+  textoLitrosCentral: {
+    fontSize: 42,
+    fontWeight: '900',
+    color: COLORES.textoOscuro,
+    letterSpacing: -1.5,
+  },
+  etiquetaTotalLeche: {
+    fontSize: 11,
+    fontWeight: '800',
     color: COLORES.textoSecundario,
-    letterSpacing: 1.2,
-    marginTop: -8,
+    letterSpacing: 1.5,
+    marginTop: -2,
+    textTransform: 'uppercase',
   },
   contenedorPuntosPaginacion: {
     flexDirection: 'row',
