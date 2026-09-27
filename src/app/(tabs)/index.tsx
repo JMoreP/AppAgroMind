@@ -1,13 +1,13 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORES } from '../shared/theme/colores';
+import { COLORES } from '../../shared/theme/colores';
 
 // Importaciones según la Arquitectura Clean Feature-based (AGENTS.md)
-import { EncabezadoPrincipal } from '../shared/components/EncabezadoPrincipal';
-import { TarjetaHeroOrdeno } from '../features/ordeno/components/TarjetaHeroOrdeno';
-import { SeccionModulos } from '../shared/components/SeccionModulos';
-import { SeccionRecientes } from '../features/animales/components/SeccionRecientes';
+import { EncabezadoPrincipal } from '../../shared/components/EncabezadoPrincipal';
+import { TarjetaHeroOrdeno } from '../../features/ordeno/components/TarjetaHeroOrdeno';
+import { SeccionModulos } from '../../shared/components/SeccionModulos';
+import { SeccionRecientes } from '../../features/animales/components/SeccionRecientes';
 
 export default function PantallaInicio() {
   return (
