@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORES } from "../../shared/theme/colores";
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { HeartPulse, Home, Settings } from 'lucide-react-native';
+import { Home, Settings } from 'lucide-react-native';
 
 // ── Botón central flotante (Estilo iOS Premium Flotante) ───────────────
 function BotonCentralPersonalizado(props: any) {
@@ -30,8 +30,8 @@ export default function LayoutTabs() {
         tabBarBackground: () => (
           <BlurView tint="light" intensity={80} style={StyleSheet.absoluteFill} />
         ),
-        tabBarActiveTintColor: "#000000",
-        tabBarInactiveTintColor: "#8E8E93",
+        tabBarActiveTintColor: COLORES.negroIndustrial,
+        tabBarInactiveTintColor: COLORES.grisIOSInactivo,
         tabBarLabelStyle: estilos.etiquetaTab,
         tabBarShowLabel: true,
       }}
@@ -40,7 +40,7 @@ export default function LayoutTabs() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => <Home size={26} color={color} strokeWidth={color === "#000000" ? 2.5 : 2} />,
+          tabBarIcon: ({ color }) => <Home size={26} color={color} strokeWidth={color === COLORES.negroIndustrial ? 2.5 : 2} />,
         }}
       />
 
@@ -60,18 +60,10 @@ export default function LayoutTabs() {
       />
 
       <Tabs.Screen
-        name="mas"
-        options={{
-          title: "Health",
-          tabBarIcon: ({ color }) => <HeartPulse size={26} color={color} strokeWidth={color === "#000000" ? 2.5 : 2} />,
-        }}
-      />
-
-      <Tabs.Screen
         name="ajustes"
         options={{
           title: "Settings",
-          tabBarIcon: ({ color }) => <Settings size={26} color={color} strokeWidth={color === "#000000" ? 2.5 : 2} />,
+          tabBarIcon: ({ color }) => <Settings size={26} color={color} strokeWidth={color === COLORES.negroIndustrial ? 2.5 : 2} />,
         }}
       />
     </Tabs>
@@ -82,9 +74,9 @@ export default function LayoutTabs() {
 const estilos = StyleSheet.create({
   barraInferior: {
     position: 'absolute',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)', // Transparente para dejar ver el Glass
+    backgroundColor: COLORES.tabBarFondo, // Transparente para dejar ver el Glass
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.7)', // Borde cortante ultra premium
+    borderTopColor: COLORES.tabBarBorde, // Borde cortante ultra premium
     height: 88,
     paddingBottom: 24,
     paddingTop: 8,
@@ -108,10 +100,10 @@ const estilos = StyleSheet.create({
     width: 58,
     height: 58,
     borderRadius: 29,
-    backgroundColor: "#000000", // Contraste industrial puro Apple
+    backgroundColor: COLORES.negroIndustrial, // Contraste industrial puro Apple
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: COLORES.negroIndustrial,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 16,
@@ -119,7 +111,7 @@ const estilos = StyleSheet.create({
   },
   iconoMas: {
     fontSize: 36,
-    color: "#ffffff",
+    color: COLORES.blanco,
     fontWeight: "300", // Líneas extra finas
     lineHeight: 40,
   },

@@ -1,12 +1,13 @@
 import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
+import { COLORES } from '../theme/colores';
 
 export function IconoOrdeno({ size = 48 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 64 64">
       <Defs>
         <LinearGradient id="gradOrdeno" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0%" stopColor="#10b981" />
-          <Stop offset="100%" stopColor="#6ee7b7" />
+          <Stop offset="0%" stopColor={COLORES.esmeraldaGradienteInicio} />
+          <Stop offset="100%" stopColor={COLORES.esmeraldaGradienteFin} />
         </LinearGradient>
       </Defs>
       <Rect x="8" y="16" width="30" height="6" rx="3" fill="url(#gradOrdeno)" />
@@ -26,8 +27,8 @@ export function IconoArete({ size = 48 }: { size?: number }) {
     <Svg width={size} height={size} viewBox="0 0 64 64">
       <Defs>
         <LinearGradient id="gradArete" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0%" stopColor="#10b981" />
-          <Stop offset="100%" stopColor="#6ee7b7" />
+          <Stop offset="0%" stopColor={COLORES.esmeraldaGradienteInicio} />
+          <Stop offset="100%" stopColor={COLORES.esmeraldaGradienteFin} />
         </LinearGradient>
       </Defs>
       <Path d="M 6 30 c 0 -3 3 -5 6 -5 h 14 c 3 0 6 2 6 5 v 16 c 0 3 -3 5 -6 5 h -14 c -3 0 -6 -2 -6 -5 z M 13 25 v -9 c 0 -3 2 -4 6 -4 c 4 0 6 1 6 4 v 9 z M 19 15 a 2.5 2.5 0 1 0 0 5 a 2.5 2.5 0 1 0 0 -5 z" fill="url(#gradArete)" fillRule="evenodd" />
@@ -43,8 +44,8 @@ export function IconoSalud({ size = 48 }: { size?: number }) {
     <Svg width={size} height={size} viewBox="0 0 64 64">
       <Defs>
         <LinearGradient id="gradSalud" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0%" stopColor="#10b981" />
-          <Stop offset="100%" stopColor="#6ee7b7" />
+          <Stop offset="0%" stopColor={COLORES.esmeraldaGradienteInicio} />
+          <Stop offset="100%" stopColor={COLORES.esmeraldaGradienteFin} />
         </LinearGradient>
       </Defs>
       <Path d="M 12 14 c 0 20 20 20 20 0" stroke="url(#gradSalud)" strokeWidth="5" fill="none" strokeLinecap="round" />
@@ -53,7 +54,7 @@ export function IconoSalud({ size = 48 }: { size?: number }) {
       <Circle cx="12" cy="12" r="4" fill="url(#gradSalud)" />
       <Circle cx="32" cy="12" r="4" fill="url(#gradSalud)" />
       <Rect x="46" y="16" width="12" height="26" rx="6" transform="rotate(45 52 29)" fill="url(#gradSalud)" />
-      <Path d="M 44 29 L 60 29" stroke="#ffffff" strokeWidth="2" transform="rotate(45 52 29)" />
+      <Path d="M 44 29 L 60 29" stroke={COLORES.blanco} strokeWidth="2" transform="rotate(45 52 29)" />
     </Svg>
   );
 }

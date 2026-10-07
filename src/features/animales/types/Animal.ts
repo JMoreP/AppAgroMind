@@ -1,17 +1,35 @@
 export interface Animal {
-  id: string; // UUID (Obligatorio para sincronización)
-  arete: string; // Número visible del animal
-  nombre?: string; // Opcional
-  fechaNacimiento: string; // ISO 8601
-  sexo: 'M' | 'H'; // Macho o Hembra
+  id: string;
+  arete: string;
+  nombre?: string;
+  sexo: 'M' | 'H';
+  fechaNacimiento: string;
+  raza?: string;
   
-  // --- Datos desnormalizados para evitar subconsultas en listados ---
+  // Pesos (kg)
+  pesoInicial: number;      // Peso al nacer/destete
+  pesoActual: number;       // Peso corporal actual
+  
+  // Genealogía
+  padreNro?: string;
+  madreNro?: string;
+  
+  // Estado reproductivo (machos siempre 'ninguno')
   estadoReproductivo: 'vacia' | 'preñada' | 'lactancia' | 'secado' | 'ninguno';
-  ultimoPesajeLitros: number; // 0 si no aplica o no hay
-  ultimoPesajeCarne: number; // Peso corporal en KG
-  loteId?: string; // Referencia al lote de pastoreo/ordeño
+  totalPartos: number;
+  fechaInseminacion?: string;
+  fechaProbableParto?: string;
   
-  // --- Metadatos de sincronización Local-First ---
-  sincronizado: 0 | 1; // 0 = pendiente de subir a Firebase, 1 = sincronizado
-  fechaActualizacion: string; // Fecha de última modificación local (para resolver conflictos)
+  // Producción de leche (desnormalizado)
+  ultimoPesajeLitros: number;
+  promedioLitros: number;
+  
+  // Estado general
+  estadoVida: 'activa' | 'muerta' | 'descartada';
+  loteId?: string;
+  
+  // Sincronización
+  sincronizado: 0 | 1;
+  fechaActualizacion: string;
 }
+

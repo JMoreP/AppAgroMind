@@ -1,25 +1,53 @@
+import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Pressable } from 'react-native';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { COLORES } from '../theme/colores';
 import { IconoArete, IconoOrdeno, IconoSalud } from './IconosModulos';
 
 export function SeccionModulos() {
+  const router = useRouter();
+
   return (
     <View style={styles.contenedorModulos}>
       <Text style={styles.tituloSeccion}>LIVESTOCK OVERVIEW</Text>
       <View style={styles.filaModulos}>
-        <TarjetaModulo titulo="Ordeño Rápido" Icono={IconoOrdeno} iconSize={86} />
-        <TarjetaModulo titulo="Búsqueda por Arete" Icono={IconoArete} />
-        <TarjetaModulo titulo="Salud & Dosis" Icono={IconoSalud} />
+        <TarjetaModulo 
+          titulo="Ordeño Rápido" 
+          Icono={IconoOrdeno} 
+          iconSize={86} 
+          onPress={() => router.push('/(tabs)/operaciones')}
+        />
+        <TarjetaModulo 
+          titulo="Búsqueda por Arete" 
+          Icono={IconoArete} 
+          onPress={() => router.push('/(tabs)/rebano')}
+        />
+        <TarjetaModulo 
+          titulo="Salud & Dosis" 
+          Icono={IconoSalud} 
+        />
       </View>
     </View>
   );
 }
 
-function TarjetaModulo({ titulo, Icono, iconSize = 64 }: { titulo: string; Icono: any; iconSize?: number }) {
+function TarjetaModulo({ 
+  titulo, 
+  Icono, 
+  iconSize = 64,
+  onPress
+}: { 
+  titulo: string; 
+  Icono: any; 
+  iconSize?: number;
+  onPress?: () => void;
+}) {
   return (
-    <View style={styles.tarjetaModuloOuter}>
+    <Pressable 
+      style={({ pressed }) => [styles.tarjetaModuloOuter, pressed && styles.tarjetaPresionada]} 
+      onPress={onPress}
+    >
       <View style={styles.glowingBlobModulo}>
         <Svg width="100%" height="100%" viewBox="0 0 100 100">
           <Defs>
@@ -38,7 +66,7 @@ function TarjetaModulo({ titulo, Icono, iconSize = 64 }: { titulo: string; Icono
         </View>
         <Text style={styles.tituloModulo}>{titulo}</Text>
       </BlurView>
-    </View>
+    </Pressable>
   );
 }
 
@@ -76,14 +104,14 @@ const styles = StyleSheet.create({
   },
   tarjetaModuloInner: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    backgroundColor: COLORES.blancoTransparente45,
     borderRadius: 18,
     paddingHorizontal: 8,
     paddingBottom: 16,
     paddingTop: 10,
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.7)',
+    borderColor: COLORES.blancoTransparente70,
   },
   contenedorIcono: {
     flex: 1,
@@ -93,11 +121,15 @@ const styles = StyleSheet.create({
   tituloModulo: {
     fontSize: 16, // Aumento significativo de tamaño
     fontWeight: '900',
-    color: '#000000', // Alto contraste
+    color: COLORES.negroIndustrial, // Alto contraste
     textAlign: 'center',
     marginTop: 0,
     minHeight: 36, // Obliga a que todos los textos ocupen el mismo bloque
     textAlignVertical: 'center',    lineHeight: 18,
     letterSpacing: -0.3,
+  },
+  tarjetaPresionada: {
+    transform: [{ scale: 0.96 }],
+    opacity: 0.85,
   },
 });

@@ -68,8 +68,8 @@ const styles = StyleSheet.create({
     width: 260, 
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.9)', 
-    shadowColor: "#000",
+    borderColor: COLORES.blancoTransparente90, 
+    shadowColor: COLORES.negroIndustrial,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.05, 
     shadowRadius: 16,
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   },
   tarjetaRecienteInner: {
     padding: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.65)',
+    backgroundColor: COLORES.blancoTransparente65,
     borderRadius: 23, // Ligeramente menor para que calce perfecto en el outer sin desbordar
     overflow: 'hidden',
   },
@@ -91,10 +91,10 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: COLORES.blancoTransparente80,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: "#000",
+    shadowColor: COLORES.negroIndustrial,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -114,25 +114,25 @@ const styles = StyleSheet.create({
   textoNombreReciente: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000000', // Negro puro Apple
+    color: COLORES.negroIndustrial, // Negro puro Apple
     letterSpacing: -0.3,
   },
   textoSubtituloReciente: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#8E8E93', // Gris típico iOS
+    color: COLORES.grisIOSInactivo, // Gris típico iOS
     marginTop: 2,
   },
   textoValorPrincipal: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#000000',
+    color: COLORES.negroIndustrial,
     letterSpacing: -0.5,
   },
   unidadTexto: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8E8E93',
+    color: COLORES.grisIOSInactivo,
   },
   textoValorSecundario: {
     fontSize: 12,

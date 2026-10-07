@@ -1,39 +1,123 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, StatusBar } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useEffect, useState, useCallback } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  Pressable, 
+  StatusBar, 
+  ActivityIndicator, 
+  Alert 
+} from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Edit3, Droplet, Weight, CalendarDays, ActivitySquare, Stethoscope, Fingerprint } from 'lucide-react-native';
+import { 
+  ChevronLeft, 
+  Edit3, 
+  Trash2, 
+  Droplet, 
+  Weight, 
+  CalendarDays, 
+  ActivitySquare, 
+  Stethoscope, 
+  Fingerprint,
+  Dna,
+  Tag
+} from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
-import { useAnimalStore } from '../../shared/store/useAnimalStore';
+import { Animal } from '../../features/animales/types/Animal';
+import { AnimalRepository } from '../../features/animales/repositories/AnimalRepository';
+import { FormularioAnimalModal } from '../../features/animales/components/FormularioAnimalModal';
+import { useHistorialLeche } from '../../features/ordeno/hooks/useHistorialLeche';
+import { TarjetasResumenPDP } from '../../features/ordeno/components/TarjetasResumenPDP';
+import { AlertaCaidaProduccion } from '../../features/ordeno/components/AlertaCaidaProduccion';
+import { GraficaProduccionLeche } from '../../features/ordeno/components/GraficaProduccionLeche';
+import { ListaHistorialPesajes } from '../../features/ordeno/components/ListaHistorialPesajes';
 import { COLORES } from '../../shared/theme/colores';
 
-import { PesajeLecheRepository } from '../../features/ordeno/repositories/PesajeLecheRepository';
-
-export default function PantallaFicha() {
+export default function PantallaDetalleAnimal() {
   const router = useRouter();
-  const { animalSeleccionado } = useAnimalStore();
-  const [lecheHoy, setLecheHoy] = React.useState<number>(0);
+  const params = useLocalSearchParams<{ id: string }>();
+  const idAnimal = params.id;
 
-  React.useEffect(() => {
-    async function cargarLeche() {
-      if (!animalSeleccionado) return;
-      try {
-        const hoyISO = new Date().toISOString().split('T')[0];
-        const pesajes = await PesajeLecheRepository.getByAnimalYFecha(animalSeleccionado.id, hoyISO);
-        const total = pesajes.reduce((acc, p) => acc + p.litros, 0);
-        setLecheHoy(total);
-      } catch (error) {
-        if (error instanceof Error) {
-          console.warn('Error al cargar pesajes en ficha:', error.message);
-        }
+  const [animal, setAnimal] = useState<Animal | null>(null);
+  const [cargando, setCargando] = useState(true);
+  const [mostrarModalEdit, setMostrarModalEdit] = useState(false);
+  const [rangoGrafica, setRangoGrafica] = useState<'7d' | '30d'>('7d');
+
+  const {
+    puntosGrafica,
+    pesajesDetallados,
+    resumenPDP,
+    recargar: recargarHistorial,
+  } = useHistorialLeche(idAnimal);
+
+  const cargarDatosAnimal = useCallback(async () => {
+    if (!idAnimal) return;
+    setCargando(true);
+    try {
+      const data = await AnimalRepository.getById(idAnimal);
+      setAnimal(data);
+      await recargarHistorial();
+    } catch (error) {
+      if (error instanceof Error) {
+        console.warn('Error al cargar animal por ID:', error.message);
       }
+    } finally {
+      setCargando(false);
     }
-    cargarLeche();
-  }, [animalSeleccionado]);
+  }, [idAnimal, recargarHistorial]);
 
-  if (!animalSeleccionado) return null;
-  const animal = animalSeleccionado;
+  useEffect(() => {
+    cargarDatosAnimal();
+  }, [cargarDatosAnimal]);
+
+  const confirmarEliminacion = () => {
+    if (!animal) return;
+
+    Alert.alert(
+      'Confirmar Eliminación',
+      `¿Deseas dar de baja a la búfala #${animal.arete}? El registro pasará a estado "descartada".`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Dar de baja', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Soft-delete cambiando el estado de vida a descartada
+              await AnimalRepository.update(animal.id, { estadoVida: 'descartada' });
+              router.back();
+            } catch (error) {
+              if (error instanceof Error) {
+                console.warn('Error al eliminar animal:', error.message);
+              }
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  if (cargando) {
+    return (
+      <SafeAreaView style={styles.containerCentro}>
+        <ActivityIndicator size="large" color={COLORES.verdeEsmeralda} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!animal) {
+    return (
+      <SafeAreaView style={styles.containerCentro}>
+        <Text style={styles.textoNoEncontrado}>Animal no encontrado.</Text>
+        <Pressable onPress={() => router.back()} style={styles.btnVolver}>
+          <Text style={styles.textoBtnVolver}>Volver al rebaño</Text>
+        </Pressable>
+      </SafeAreaView>
+    );
+  }
 
   const getStatusHeroStyle = () => {
     switch(animal.estadoReproductivo) {
@@ -54,7 +138,7 @@ export default function PantallaFicha() {
       default: return styles.heroDotDefault;
     }
   };
-  
+
   const getStatusHeroTextStyle = () => {
     switch(animal.estadoReproductivo) {
       case 'lactancia': return styles.heroTextLactancia;
@@ -75,9 +159,14 @@ export default function PantallaFicha() {
           <ChevronLeft size={24} color={COLORES.tealOscuro} />
         </Pressable>
         <Text style={styles.headerTitle}>Ficha Técnica</Text>
-        <Pressable style={styles.btnNav}>
-          <Edit3 size={20} color={COLORES.tealOscuro} />
-        </Pressable>
+        <View style={styles.headerRightActions}>
+          <Pressable onPress={() => setMostrarModalEdit(true)} style={styles.btnNav}>
+            <Edit3 size={18} color={COLORES.tealOscuro} />
+          </Pressable>
+          <Pressable onPress={confirmarEliminacion} style={styles.btnNavEliminar}>
+            <Trash2 size={18} color={COLORES.rojoError} />
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollPadding} showsVerticalScrollIndicator={false}>
@@ -94,7 +183,9 @@ export default function PantallaFicha() {
             </View>
             <View style={styles.idBadgeDark}>
               <Fingerprint size={12} color={COLORES.limaBrillante} />
-              <Text style={styles.idBadgeTextDark}>VERIFICADO</Text>
+              <Text style={styles.idBadgeTextDark}>
+                {animal.estadoVida.toUpperCase()}
+              </Text>
             </View>
           </View>
           
@@ -110,6 +201,7 @@ export default function PantallaFicha() {
             </View>
             {animal.raza && (
               <View style={styles.heroTagDark}>
+                <Tag size={12} color={COLORES.verdeMentha} />
                 <Text style={styles.heroTagTextDark}>{animal.raza}</Text>
               </View>
             )}
@@ -147,14 +239,14 @@ export default function PantallaFicha() {
               </View>
               <View style={styles.metricValueRow}>
                 <Text style={styles.metricValue}>
-                  {lecheHoy > 0 ? (lecheHoy % 1 === 0 ? lecheHoy.toFixed(0) : lecheHoy.toFixed(1)) : '0'}
+                  {resumenPDP.litrosHoy > 0 ? (resumenPDP.litrosHoy % 1 === 0 ? resumenPDP.litrosHoy.toFixed(0) : resumenPDP.litrosHoy.toFixed(1)) : '0'}
                 </Text>
                 <Text style={styles.metricUnit}>L</Text>
               </View>
             </BlurView>
           </View>
 
-          {/* Tarjeta Peso */}
+          {/* Tarjeta Peso Vivo */}
           <View style={styles.tarjetaGlassOuter}>
             <View style={styles.glowingBlob}>
               <Svg width="100%" height="100%" viewBox="0 0 100 100">
@@ -184,7 +276,43 @@ export default function PantallaFicha() {
 
         </View>
 
-        {/* ── Clean Status Cards ── */}
+        {/* ── Rendimiento Lechero y Alertas ── */}
+        <Text style={styles.sectionTitle}>Rendimiento Lechero & Tendencia</Text>
+        <AlertaCaidaProduccion alerta={resumenPDP.alertaCaida} />
+        <TarjetasResumenPDP resumen={resumenPDP} />
+        <GraficaProduccionLeche
+          datos={puntosGrafica}
+          lineaReferenciaPDP={resumenPDP.pdp7Dias > 0 ? resumenPDP.pdp7Dias : undefined}
+          etiquetaReferencia="PDP 7d"
+          titulo="Evolución de Producción"
+          subtitulo="Litros diarios registrados (últimos 30 días)"
+          rangoActivo={rangoGrafica}
+          onCambiarRango={setRangoGrafica}
+        />
+        <ListaHistorialPesajes pesajes={pesajesDetallados} />
+
+        {/* ── Genealogía y Detalles ── */}
+        <Text style={styles.sectionTitle}>Genealogía y Pesos</Text>
+        <View style={styles.detailsCard}>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Padre (Toro):</Text>
+            <Text style={styles.detailValue}>{animal.padreNro || 'No registrado'}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Madre:</Text>
+            <Text style={styles.detailValue}>{animal.madreNro || 'No registrada'}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Peso Nacimiento/Destete:</Text>
+            <Text style={styles.detailValue}>{animal.pesoInicial ? `${animal.pesoInicial} kg` : '0 kg'}</Text>
+          </View>
+          <View style={styles.detailRowNoBorder}>
+            <Text style={styles.detailLabel}>Total de Partos:</Text>
+            <Text style={styles.detailValue}>{animal.totalPartos}</Text>
+          </View>
+        </View>
+
+        {/* ── Historial Clínico ── */}
         <Text style={styles.sectionTitle}>Historial Clínico</Text>
         
         <View style={styles.healthCard}>
@@ -211,6 +339,14 @@ export default function PantallaFicha() {
         </View>
 
       </ScrollView>
+
+      {/* Formulario Editar Modal */}
+      <FormularioAnimalModal
+        visible={mostrarModalEdit}
+        animalEditar={animal}
+        onCerrar={() => setMostrarModalEdit(false)}
+        onAnimalGuardado={cargarDatosAnimal}
+      />
     </SafeAreaView>
   );
 }
@@ -220,6 +356,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORES.fondoApp,
   },
+  containerCentro: {
+    flex: 1,
+    backgroundColor: COLORES.fondoApp,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  textoNoEncontrado: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORES.tealOscuro,
+    marginBottom: 16,
+  },
+  btnVolver: {
+    backgroundColor: COLORES.verdeEsmeralda,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  textoBtnVolver: {
+    color: COLORES.blanco,
+    fontWeight: '700',
+  },
   headerNav: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -227,15 +386,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     height: 60,
   },
+  headerRightActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   btnNav: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: COLORES.blanco,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: COLORES.bordeClaro,
+  },
+  btnNavEliminar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: COLORES.rojoClaro,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORES.rojoError,
   },
   headerTitle: {
     fontSize: 16,
@@ -293,7 +466,7 @@ const styles = StyleSheet.create({
   idBadgeDark: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORES.limaTransparente15, // limaBrillante opacity
+    backgroundColor: COLORES.limaTransparente15,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 100,
@@ -326,15 +499,16 @@ const styles = StyleSheet.create({
   },
   heroBottomRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   heroTagDark: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORES.blancoTransparente10, // white opacity
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    backgroundColor: COLORES.blancoTransparente10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 100,
-    marginRight: 12,
   },
   iconoTag: {
     marginRight: 6,
@@ -344,10 +518,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORES.blanco,
     letterSpacing: 0.5,
-    marginLeft: 6,
+    marginLeft: 4,
   },
   
-  // Hero Status Dynamic Styles (No inline)
+  // Hero Status Dynamic Styles
   heroStatusLactancia: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORES.limaBrillante, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100 },
   heroDotLactancia: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORES.verdeOscuro, marginRight: 8 },
   heroTextLactancia: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5, color: COLORES.verdeOscuro },
@@ -368,7 +542,6 @@ const styles = StyleSheet.create({
   heroDotDefault: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORES.blanco, marginRight: 8 },
   heroTextDefault: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5, color: COLORES.blanco },
 
-  // Sections
   sectionTitle: {
     fontSize: 13,
     fontWeight: '800',
@@ -379,7 +552,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   
-  // Grid Premium
   grid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -455,7 +627,39 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   
-  // Clean Health Cards
+  detailsCard: {
+    backgroundColor: COLORES.blanco,
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: COLORES.bordeClaro,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORES.bordeClaro,
+  },
+  detailRowNoBorder: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  detailLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORES.textoMudo,
+  },
+  detailValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORES.tealOscuro,
+  },
+
   healthCard: {
     flexDirection: 'row',
     alignItems: 'center',

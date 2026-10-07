@@ -1,13 +1,24 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { BlurView } from 'expo-blur';
 import Svg, { Circle, Defs, RadialGradient, Stop, Path, LinearGradient } from 'react-native-svg';
 import { COLORES } from '../../../shared/theme/colores';
 
-export function TarjetaHeroOrdeno({ totalLitros = '480.5 L' }: { totalLitros?: string }) {
+interface Props {
+  totalLitros?: string;
+  onPress?: () => void;
+}
+
+export function TarjetaHeroOrdeno({ totalLitros = '480.5 L', onPress }: Props) {
   return (
     <View style={styles.contenedorTarjetaHero}>
-      <View style={styles.tarjetaOuter}>
+      <Pressable 
+        style={({ pressed }) => [
+          styles.tarjetaOuter,
+          pressed && Boolean(onPress) && styles.tarjetaOuterPresionada
+        ]}
+        onPress={onPress}
+      >
         {/* Esmeralda Glow Blob (Efecto Glass/Luz) */}
         <View style={styles.glowingBlob}>
           <Svg width="100%" height="100%" viewBox="0 0 100 100">
@@ -47,12 +58,12 @@ export function TarjetaHeroOrdeno({ totalLitros = '480.5 L' }: { totalLitros?: s
         {/* Tarjeta Interna (Superficie de Cristal Auténtico) */}
         <BlurView intensity={70} tint="light" style={styles.tarjetaInner}>
           <View style={styles.badgeCrecimiento}>
-            <Text style={styles.textoBadgeCrecimiento}>▲ 12.5% vs ayer</Text>
+            <Text style={styles.textoBadgeCrecimiento}>▲ Ver análisis del hato</Text>
           </View>
           <Text style={styles.textoLitrosCentral}>{totalLitros}</Text>
           <Text style={styles.etiquetaTotalLeche}>TOTAL MILK TODAY</Text>
         </BlurView>
-      </View>
+      </Pressable>
 
       {/* Indicadores de Paginación en la base (3 Puntos) */}
       <View style={styles.contenedorPuntosPaginacion}>
@@ -82,6 +93,10 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 8,
   },
+  tarjetaOuterPresionada: {
+    transform: [{ scale: 0.98 }],
+    opacity: 0.92,
+  },
   glowingBlob: {
     position: 'absolute',
     bottom: -80,
@@ -91,12 +106,12 @@ const styles = StyleSheet.create({
   },
   tarjetaInner: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    backgroundColor: COLORES.blancoTransparente40,
     borderRadius: 28, // 30 (outer) - 2 (padding)
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderColor: COLORES.blancoTransparente80,
   },
   sparklineContainer: {
     position: 'absolute',
@@ -107,18 +122,18 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   badgeCrecimiento: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    backgroundColor: COLORES.esmeraldaTransparente15,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
+    borderColor: COLORES.esmeraldaTransparente30,
   },
   textoBadgeCrecimiento: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#047857', // Un verde más oscuro para legibilidad
+    color: COLORES.verdeBadgeCrecimiento, // Un verde más oscuro para legibilidad
     letterSpacing: 0.5,
   },
   textoLitrosCentral: {

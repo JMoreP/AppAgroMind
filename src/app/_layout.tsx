@@ -15,6 +15,8 @@ export default function RootLayout() {
       
       {/* Otras pantallas que NO deben tener barra inferior van aquí */}
       <Stack.Screen name="animal/ficha" />
+      <Stack.Screen name="animal/[id]" />
+      <Stack.Screen name="ordeno/dashboard" />
     </Stack>
   );
 }
