@@ -85,9 +85,23 @@ export const COLORES = {
   tabActivo: "#1EA97B",
   tabInactivo: "#C8EFC1",
 
-  // Errores / Validaciones
+  // Errores / Validaciones / Alertas
   rojoError: "#DC2626",
   rojoClaro: "#FEE2E2",
+  ambarAlerta: "#D97706",
+  ambarClaro: "#FEF3C7",
+  ambarOscuro: "#92400E",
+
+  // Especies
+  badgeBovinoFondo: "#E0F2FE",
+  badgeBovinoTexto: "#0369A1",
+  badgeBufalinoFondo: "#FEF3C7",
+  badgeBufalinoTexto: "#92400E",
+
+  // Fondos y overlays de modales / formularios
+  verdeClaroFondo: "#EDF2EE",
+  negroOverlay: "rgba(0, 0, 0, 0.5)",
+  grisBuscador: "#F1F5F9",
 } as const;
 
 export type TipoColor = keyof typeof COLORES;

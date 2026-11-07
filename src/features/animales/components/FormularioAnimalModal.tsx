@@ -17,6 +17,12 @@ import { Animal } from '../types/Animal';
 import { AnimalRepository } from '../repositories/AnimalRepository';
 import { useLotes } from '../../lotes/hooks/useLotes';
 import { COLORES } from '../../../shared/theme/colores';
+import { SelectorFecha } from '../../../shared/components/SelectorFecha';
+import {
+  Especie,
+  obtenerRazas,
+  obtenerNombreAnimal,
+} from '../../../shared/config/configuracionEspecie';
 
 interface Props {
   visible: boolean;
@@ -36,17 +42,19 @@ export function FormularioAnimalModal({
   const hoyStr = new Date().toISOString().split('T')[0];
   const { lotes } = useLotes();
 
+  const [especie, setEspecie] = useState<Especie>('bufalino');
   const [arete, setArete] = useState('');
   const [nombre, setNombre] = useState('');
   const [sexo, setSexo] = useState<'M' | 'H'>('H');
   const [fechaNacimiento, setFechaNacimiento] = useState(hoyStr);
   const [raza, setRaza] = useState('');
+  const [mostrarOtraRaza, setMostrarOtraRaza] = useState(false);
   const [pesoInicial, setPesoInicial] = useState('');
   const [pesoActual, setPesoActual] = useState('');
   const [padreNro, setPadreNro] = useState('');
   const [madreNro, setMadreNro] = useState('');
   const [loteId, setLoteId] = useState('');
-  const [estadoReproductivo, setEstadoReproductivo] = useState<'vacia' | 'preñada' | 'lactancia' | 'secado' | 'ninguno'>('vacia');
+  const [estadoReproductivo, setEstadoReproductivo] = useState<Animal['estadoReproductivo']>('vacia');
   const [estadoVida, setEstadoVida] = useState<'activa' | 'muerta' | 'descartada'>('activa');
 
   const [guardando, setGuardando] = useState(false);
@@ -56,11 +64,15 @@ export function FormularioAnimalModal({
   useEffect(() => {
     if (visible) {
       if (animalEditar) {
+        const esp = animalEditar.especie || 'bufalino';
+        setEspecie(esp);
         setArete(animalEditar.arete);
         setNombre(animalEditar.nombre || '');
         setSexo(animalEditar.sexo);
         setFechaNacimiento(animalEditar.fechaNacimiento);
         setRaza(animalEditar.raza || '');
+        const razasEspecie = obtenerRazas(esp);
+        setMostrarOtraRaza(Boolean(animalEditar.raza && !razasEspecie.includes(animalEditar.raza)));
         setPesoInicial(animalEditar.pesoInicial ? String(animalEditar.pesoInicial) : '');
         setPesoActual(animalEditar.pesoActual ? String(animalEditar.pesoActual) : '');
         setPadreNro(animalEditar.padreNro || '');
@@ -69,11 +81,13 @@ export function FormularioAnimalModal({
         setEstadoReproductivo(animalEditar.estadoReproductivo);
         setEstadoVida(animalEditar.estadoVida);
       } else {
+        setEspecie('bufalino');
         setArete('');
         setNombre('');
         setSexo('H');
         setFechaNacimiento(hoyStr);
         setRaza('');
+        setMostrarOtraRaza(false);
         setPesoInicial('');
         setPesoActual('');
         setPadreNro('');
@@ -86,6 +100,14 @@ export function FormularioAnimalModal({
       setErrorFecha('');
     }
   }, [visible, animalEditar]);
+
+  const cambiarEspecie = (nuevaEspecie: Especie) => {
+    setEspecie(nuevaEspecie);
+    const razasEspecie = obtenerRazas(nuevaEspecie);
+    if (raza && !razasEspecie.includes(raza) && !mostrarOtraRaza) {
+      setRaza('');
+    }
+  };
 
   const cambiarSexo = (nuevoSexo: 'M' | 'H') => {
     setSexo(nuevoSexo);
@@ -107,7 +129,7 @@ export function FormularioAnimalModal({
     }
 
     if (!fechaNacimiento.trim()) {
-      setErrorFecha('La fecha de nacimiento es obligatoria (YYYY-MM-DD).');
+      setErrorFecha('La fecha de nacimiento es obligatoria.');
       return;
     }
 
@@ -127,6 +149,7 @@ export function FormularioAnimalModal({
       if (animalEditar) {
         // Modo Edición
         const cambios: Partial<Animal> = {
+          especie,
           arete: areteLimpio,
           nombre: nombre.trim() || undefined,
           sexo,
@@ -149,6 +172,7 @@ export function FormularioAnimalModal({
         const idUnico = Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
         const nuevoAnimal: Animal = {
           id: idUnico,
+          especie,
           arete: areteLimpio,
           nombre: nombre.trim() || undefined,
           sexo,
@@ -174,7 +198,9 @@ export function FormularioAnimalModal({
       onAnimalGuardado();
       onCerrar();
     } catch (err) {
-      console.error('Error al guardar animal:', err);
+      if (err instanceof Error) {
+        console.warn('Error al guardar animal:', err.message);
+      }
       setErrorArete('Error al guardar en base de datos local.');
     } finally {
       setGuardando(false);
@@ -199,7 +225,7 @@ export function FormularioAnimalModal({
               <X size={20} color={COLORES.tealOscuro} />
             </Pressable>
             <Text style={styles.tituloHeader}>
-              {animalEditar ? 'Editar Ficha Animal' : 'Nueva Ficha Animal'}
+              {animalEditar ? 'Editar Ficha Animal' : 'Nuevo Animal'}
             </Text>
             <Pressable 
               style={[styles.botonGuardar, guardando && styles.botonGuardarDeshabilitado]} 
@@ -227,6 +253,47 @@ export function FormularioAnimalModal({
               <View style={styles.seccionHeaderRow}>
                 <Tag size={18} color={COLORES.verdeEsmeralda} />
                 <Text style={styles.seccionTitulo}>DATOS DE IDENTIFICACIÓN</Text>
+              </View>
+
+              <Text style={styles.labelInput}>
+                Especie <Text style={styles.labelRequerido}>*</Text>
+              </Text>
+              <View style={styles.selectorEspecieContainer}>
+                <Pressable
+                  style={[
+                    styles.botonEspecie,
+                    especie === 'bufalino' && styles.botonEspecieActivo,
+                  ]}
+                  onPress={() => cambiarEspecie('bufalino')}
+                >
+                  <Text style={styles.emojiEspecie}>🐃</Text>
+                  <Text
+                    style={[
+                      styles.textoBotonEspecie,
+                      especie === 'bufalino' && styles.textoBotonEspecieActivo,
+                    ]}
+                  >
+                    Bufalino
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  style={[
+                    styles.botonEspecie,
+                    especie === 'bovino' && styles.botonEspecieActivo,
+                  ]}
+                  onPress={() => cambiarEspecie('bovino')}
+                >
+                  <Text style={styles.emojiEspecie}>🐄</Text>
+                  <Text
+                    style={[
+                      styles.textoBotonEspecie,
+                      especie === 'bovino' && styles.textoBotonEspecieActivo,
+                    ]}
+                  >
+                    Bovino
+                  </Text>
+                </Pressable>
               </View>
 
               <Text style={styles.labelInput}>
@@ -260,7 +327,7 @@ export function FormularioAnimalModal({
                   onPress={() => cambiarSexo('H')}
                 >
                   <Text style={[styles.textoOpcion, sexo === 'H' && styles.textoOpcionActiva]}>
-                    Hembra (Búfala)
+                    {`Hembra (${obtenerNombreAnimal(especie, 'H')})`}
                   </Text>
                 </Pressable>
                 <Pressable
@@ -268,19 +335,54 @@ export function FormularioAnimalModal({
                   onPress={() => cambiarSexo('M')}
                 >
                   <Text style={[styles.textoOpcion, sexo === 'M' && styles.textoOpcionActiva]}>
-                    Macho (Búfalo)
+                    {`Macho (${obtenerNombreAnimal(especie, 'M')})`}
                   </Text>
                 </Pressable>
               </View>
 
               <Text style={styles.labelInput}>Raza / Cruza</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Ej. Murrah, Mediterráneo, Carabao..."
-                placeholderTextColor={COLORES.textoMudo}
-                value={raza}
-                onChangeText={setRaza}
-              />
+              <View style={styles.chipsRazaContainer}>
+                {obtenerRazas(especie).map((r) => {
+                  const activa = raza === r && !mostrarOtraRaza;
+                  return (
+                    <Pressable
+                      key={r}
+                      style={[styles.chipRaza, activa && styles.chipRazaActivo]}
+                      onPress={() => {
+                        setRaza(r);
+                        setMostrarOtraRaza(false);
+                      }}
+                    >
+                      <Text style={[styles.textoChipRaza, activa && styles.textoChipRazaActivo]}>
+                        {r}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+                <Pressable
+                  style={[styles.chipRaza, mostrarOtraRaza && styles.chipRazaActivo]}
+                  onPress={() => {
+                    setMostrarOtraRaza(true);
+                    if (obtenerRazas(especie).includes(raza)) {
+                      setRaza('');
+                    }
+                  }}
+                >
+                  <Text style={[styles.textoChipRaza, mostrarOtraRaza && styles.textoChipRazaActivo]}>
+                    Otra raza
+                  </Text>
+                </Pressable>
+              </View>
+
+              {mostrarOtraRaza && (
+                <TextInput
+                  style={styles.input}
+                  placeholder="Escribe la raza..."
+                  placeholderTextColor={COLORES.textoMudo}
+                  value={raza}
+                  onChangeText={setRaza}
+                />
+              )}
             </View>
 
             {/* Sección 2: Fechas y Genealogía */}
@@ -290,17 +392,17 @@ export function FormularioAnimalModal({
                 <Text style={styles.seccionTitulo}>FECHAS Y GENEALOGÍA</Text>
               </View>
 
-              <Text style={styles.labelInput}>
-                Fecha de Nacimiento (YYYY-MM-DD) <Text style={styles.labelRequerido}>*</Text>
-              </Text>
-              <TextInput
-                style={[styles.input, !!errorFecha && styles.inputError]}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor={COLORES.textoMudo}
-                value={fechaNacimiento}
-                onChangeText={(val) => { setFechaNacimiento(val); setErrorFecha(''); }}
+              <SelectorFecha
+                label="Fecha de Nacimiento"
+                valor={fechaNacimiento}
+                onChange={(val) => {
+                  setFechaNacimiento(val);
+                  setErrorFecha('');
+                }}
+                requerido
+                maximo={hoyStr}
+                error={errorFecha}
               />
-              {!!errorFecha && <Text style={styles.textoError}>{errorFecha}</Text>}
 
               <Text style={styles.labelInput}>Nro Arete del Padre (Toro)</Text>
               <TextInput
@@ -374,7 +476,7 @@ export function FormularioAnimalModal({
                 <>
                   <Text style={styles.labelInput}>Estado Reproductivo</Text>
                   <View style={styles.gridEstadoReproductivo}>
-                    {(['vacia', 'preñada', 'lactancia', 'secado'] as const).map((estado) => (
+                    {(['vacia', 'servida', 'preñada', 'lactancia', 'secado'] as const).map((estado) => (
                       <Pressable
                         key={estado}
                         style={[
@@ -707,5 +809,66 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: COLORES.verdeEsmeralda,
+  },
+  selectorEspecieContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 8,
+  },
+  botonEspecie: {
+    flex: 1,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: COLORES.fondoApp,
+    borderWidth: 2,
+    borderColor: COLORES.bordeClaro,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  botonEspecieActivo: {
+    borderColor: COLORES.verdeEsmeralda,
+    backgroundColor: COLORES.esmeraldaTransparente15,
+  },
+  emojiEspecie: {
+    fontSize: 20,
+  },
+  textoBotonEspecie: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORES.tealOscuro,
+  },
+  textoBotonEspecieActivo: {
+    color: COLORES.verdeEsmeralda,
+    fontWeight: '800',
+  },
+  chipsRazaContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 4,
+    marginBottom: 6,
+  },
+  chipRaza: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: COLORES.fondoApp,
+    borderWidth: 1,
+    borderColor: COLORES.bordeClaro,
+  },
+  chipRazaActivo: {
+    backgroundColor: COLORES.tealOscuro,
+    borderColor: COLORES.tealOscuro,
+  },
+  textoChipRaza: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORES.textoMudo,
+  },
+  textoChipRazaActivo: {
+    color: COLORES.blanco,
+    fontWeight: '700',
   },
 });

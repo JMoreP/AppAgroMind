@@ -3,6 +3,7 @@ export interface Animal {
   arete: string;
   nombre?: string;
   sexo: 'M' | 'H';
+  especie: 'bovino' | 'bufalino';
   fechaNacimiento: string;
   raza?: string;
   
@@ -15,7 +16,7 @@ export interface Animal {
   madreNro?: string;
   
   // Estado reproductivo (machos siempre 'ninguno')
-  estadoReproductivo: 'vacia' | 'preñada' | 'lactancia' | 'secado' | 'ninguno';
+  estadoReproductivo: 'vacia' | 'servida' | 'preñada' | 'lactancia' | 'secado' | 'ninguno';
   totalPartos: number;
   fechaInseminacion?: string;
   fechaProbableParto?: string;

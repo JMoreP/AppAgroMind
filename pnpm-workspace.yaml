@@ -1,0 +1,3 @@
+minimumReleaseAgeExclude:
+  - '@expo/config-plugins@57.0.11'
+  - expo-sharing@57.0.24

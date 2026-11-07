@@ -9,6 +9,7 @@ export function useAnimales() {
   // Estados de Búsqueda y Filtros
   const [busqueda, setBusqueda] = useState('');
   const [busquedaDebounced, setBusquedaDebounced] = useState('');
+  const [filtroEspecie, setFiltroEspecie] = useState<'bovino' | 'bufalino' | 'todos'>('todos');
   const [filtroEstadoVida, setFiltroEstadoVida] = useState<'activa' | 'muerta' | 'descartada' | 'todos'>('activa');
   const [filtroEstadoReproductivo, setFiltroEstadoReproductivo] = useState<'vacia' | 'preñada' | 'lactancia' | 'secado' | 'ninguno' | 'todos'>('todos');
   const [filtroRaza, setFiltroRaza] = useState<string>('todos');
@@ -29,7 +30,9 @@ export function useAnimales() {
       const datos = await AnimalRepository.getAll();
       setTodosAnimales(datos);
     } catch (error) {
-      console.error('Error al cargar animales:', error);
+      if (error instanceof Error) {
+        console.warn('Error al cargar animales:', error.message);
+      }
     } finally {
       setCargando(false);
     }
@@ -66,7 +69,12 @@ export function useAnimales() {
 
   // Filtrado combinado
   const animalesFiltrados = useMemo(() => {
-    return todosAnimales.filter(a => {
+    return todosAnimales.filter((a) => {
+      // 0. Filtro por Especie
+      if (filtroEspecie !== 'todos' && a.especie !== filtroEspecie) {
+        return false;
+      }
+
       // 1. Filtro por Estado de Vida
       if (filtroEstadoVida !== 'todos' && a.estadoVida !== filtroEstadoVida) {
         return false;
@@ -100,10 +108,11 @@ export function useAnimales() {
 
       return true;
     });
-  }, [todosAnimales, filtroEstadoVida, filtroEstadoReproductivo, filtroRaza, filtroLoteId, busquedaDebounced]);
+  }, [todosAnimales, filtroEspecie, filtroEstadoVida, filtroEstadoReproductivo, filtroRaza, filtroLoteId, busquedaDebounced]);
 
   const resetFiltros = () => {
     setBusqueda('');
+    setFiltroEspecie('todos');
     setFiltroEstadoVida('activa');
     setFiltroEstadoReproductivo('todos');
     setFiltroRaza('todos');
@@ -111,6 +120,7 @@ export function useAnimales() {
   };
 
   const hayFiltrosActivos = 
+    filtroEspecie !== 'todos' ||
     filtroEstadoVida !== 'activa' ||
     filtroEstadoReproductivo !== 'todos' ||
     filtroRaza !== 'todos' ||
@@ -122,6 +132,8 @@ export function useAnimales() {
     todosAnimalesCount: todosAnimales.length,
     busqueda,
     setBusqueda,
+    filtroEspecie,
+    setFiltroEspecie,
     filtroEstadoVida,
     setFiltroEstadoVida,
     filtroEstadoReproductivo,

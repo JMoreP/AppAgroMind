@@ -134,7 +134,7 @@ export function useOrdenoLote() {
     if (yaRegistrado) {
       return {
         exito: false,
-        mensaje: `La búfala #${animal.arete} ya tiene un pesaje de ${yaRegistrado.litros} L en el turno de la ${turno}.`,
+        mensaje: `El animal #${animal.arete} ya tiene un pesaje de ${yaRegistrado.litros} L en el turno de la ${turno}.`,
         animal,
       };
     }

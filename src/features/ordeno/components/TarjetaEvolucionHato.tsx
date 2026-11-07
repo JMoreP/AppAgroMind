@@ -43,7 +43,7 @@ export function TarjetaEvolucionHato() {
           </View>
           <View style={styles.filaValor}>
             <Text style={styles.valorPrincipal}>{pdpHatoHoy.toFixed(1)}</Text>
-            <Text style={styles.unidadTexto}>L/búfala</Text>
+            <Text style={styles.unidadTexto}>L/animal</Text>
           </View>
           <Text style={styles.subtextoMetrica}>
             {bufalasHoy > 0 ? `${bufalasHoy} ordeñadas hoy` : 'Sin ordeño hoy'}

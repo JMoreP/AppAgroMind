@@ -1,12 +1,22 @@
+import { useMemo } from 'react';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
+import { HeartPulse, Beef, Syringe, FileText } from 'lucide-react-native';
 import { COLORES } from '../theme/colores';
-import { IconoArete, IconoOrdeno, IconoSalud } from './IconosModulos';
+import { IconoArete, IconoOrdeno } from './IconosModulos';
+import { useEventosSanitarios } from '../../features/sanidad/hooks/useEventosSanitarios';
+import { estaEnAlerta } from '../../features/sanidad/utils/calculosSanidad';
 
 export function SeccionModulos() {
   const router = useRouter();
+  const { proximasDosis, vencidos } = useEventosSanitarios();
+
+  const totalAlertasSanidad = useMemo(() => {
+    const enAlerta = proximasDosis.filter((p) => estaEnAlerta(p.proximaDosis)).length;
+    return enAlerta + vencidos.length;
+  }, [proximasDosis, vencidos]);
 
   return (
     <View style={styles.contenedorModulos}>
@@ -23,29 +33,74 @@ export function SeccionModulos() {
           Icono={IconoArete} 
           onPress={() => router.push('/(tabs)/rebano')}
         />
+      </View>
+      <View style={styles.filaModulosInferior}>
         <TarjetaModulo 
-          titulo="Salud & Dosis" 
-          Icono={IconoSalud} 
+          titulo="Reproducción" 
+          Icono={IconoReproduccion} 
+          iconSize={42}
+          onPress={() => router.push('/reproduccion')}
+        />
+        <TarjetaModulo 
+          titulo="Control de Ceba" 
+          Icono={IconoCeba} 
+          iconSize={42}
+          onPress={() => router.push('/ceba')}
+        />
+      </View>
+      <View style={styles.filaModulosInferior}>
+        <TarjetaModulo 
+          titulo="Sanidad" 
+          Icono={IconoSanidad} 
+          iconSize={42}
+          badgeCount={totalAlertasSanidad}
+          onPress={() => router.push('/sanidad')}
+        />
+        <TarjetaModulo 
+          titulo="Reportes" 
+          Icono={IconoReportes} 
+          iconSize={42}
+          onPress={() => router.push('/reportes')}
         />
       </View>
     </View>
   );
 }
 
+function IconoReproduccion({ size = 48 }: { size?: number }) {
+  return <HeartPulse size={size} color={COLORES.verdeEsmeralda} />;
+}
+
+function IconoCeba({ size = 48 }: { size?: number }) {
+  return <Beef size={size} color={COLORES.verdeEsmeralda} />;
+}
+
+function IconoSanidad({ size = 48 }: { size?: number }) {
+  return <Syringe size={size} color={COLORES.verdeEsmeralda} />;
+}
+
+function IconoReportes({ size = 48 }: { size?: number }) {
+  return <FileText size={size} color={COLORES.verdeEsmeralda} />;
+}
+
+interface TarjetaModuloProps {
+  titulo: string;
+  Icono: React.ComponentType<{ size?: number; color?: string }>;
+  iconSize?: number;
+  badgeCount?: number;
+  onPress?: () => void;
+}
+
 function TarjetaModulo({ 
   titulo, 
   Icono, 
   iconSize = 64,
+  badgeCount,
   onPress
-}: { 
-  titulo: string; 
-  Icono: any; 
-  iconSize?: number;
-  onPress?: () => void;
-}) {
+}: TarjetaModuloProps) {
   return (
     <Pressable 
-      style={({ pressed }) => [styles.tarjetaModuloOuter, pressed && styles.tarjetaPresionada]} 
+      style={({ pressed }) => pressed ? styles.tarjetaModuloOuterPresionada : styles.tarjetaModuloOuter} 
       onPress={onPress}
     >
       <View style={styles.glowingBlobModulo}>
@@ -61,6 +116,11 @@ function TarjetaModulo({
       </View>
 
       <BlurView intensity={65} tint="light" style={styles.tarjetaModuloInner}>
+        {Boolean(badgeCount && badgeCount > 0) && (
+          <View style={styles.badgeAlertaFlotante}>
+            <Text style={styles.textoBadgeAlerta}>{badgeCount}</Text>
+          </View>
+        )}
         <View style={styles.contenedorIcono}>
           <Icono size={iconSize} />
         </View>
@@ -87,6 +147,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 8,
   },
+  filaModulosInferior: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginTop: 8,
+  },
+  espaciadorModulo: {
+    flex: 1,
+  },
   tarjetaModuloOuter: {
     flex: 1,
     height: 155,
@@ -94,6 +163,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 2,
     overflow: 'hidden',
+  },
+  tarjetaModuloOuterPresionada: {
+    flex: 1,
+    height: 155,
+    backgroundColor: 'transparent',
+    borderRadius: 20,
+    padding: 2,
+    overflow: 'hidden',
+    transform: [{ scale: 0.96 }],
+    opacity: 0.85,
   },
   glowingBlobModulo: {
     position: 'absolute',
@@ -119,17 +198,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tituloModulo: {
-    fontSize: 16, // Aumento significativo de tamaño
+    fontSize: 16,
     fontWeight: '900',
-    color: COLORES.negroIndustrial, // Alto contraste
+    color: COLORES.negroIndustrial,
     textAlign: 'center',
     marginTop: 0,
-    minHeight: 36, // Obliga a que todos los textos ocupen el mismo bloque
-    textAlignVertical: 'center',    lineHeight: 18,
+    minHeight: 36,
+    textAlignVertical: 'center',
+    lineHeight: 18,
     letterSpacing: -0.3,
   },
-  tarjetaPresionada: {
-    transform: [{ scale: 0.96 }],
-    opacity: 0.85,
+  badgeAlertaFlotante: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: COLORES.rojoError,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 5,
+    zIndex: 10,
+  },
+  textoBadgeAlerta: {
+    color: COLORES.blanco,
+    fontSize: 10,
+    fontWeight: '800',
   },
 });

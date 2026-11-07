@@ -7,6 +7,7 @@ import { BlurView } from 'expo-blur';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { useAnimalStore } from '../../shared/store/useAnimalStore';
 import { COLORES } from '../../shared/theme/colores';
+import { obtenerNombreAnimal } from '../../shared/config/configuracionEspecie';
 
 import { PesajeLecheRepository } from '../../features/ordeno/repositories/PesajeLecheRepository';
 
@@ -100,7 +101,9 @@ export default function PantallaFicha() {
           
           <View style={styles.heroCenter}>
             <Text style={styles.areteGiant}>#{animal.arete}</Text>
-            <Text style={styles.nombreDark}>{animal.nombre || 'Búfala N/A'}</Text>
+            <Text style={styles.nombreDark}>
+              {animal.nombre || `${animal.especie ? obtenerNombreAnimal(animal.especie, animal.sexo) : 'Animal'} N/A`}
+            </Text>
           </View>
           
           <View style={styles.heroBottomRow}>

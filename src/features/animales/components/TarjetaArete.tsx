@@ -4,6 +4,7 @@ import { Animal } from '../types/Animal';
 import { useAnimalStore } from '../../../shared/store/useAnimalStore';
 import { useRouter } from 'expo-router';
 import { COLORES } from '../../../shared/theme/colores';
+import { obtenerNombreAnimal } from '../../../shared/config/configuracionEspecie';
 
 interface Props {
   animal: Animal;
@@ -17,6 +18,7 @@ export function TarjetaArete({ animal }: Props) {
   };
 
   const statusLabel = animal.estadoReproductivo.charAt(0).toUpperCase() + animal.estadoReproductivo.slice(1);
+  const esBovino = animal.especie === 'bovino';
 
   return (
     <Pressable 
@@ -37,9 +39,26 @@ export function TarjetaArete({ animal }: Props) {
           
           {/* Textos Centrales */}
           <View style={styles.cuerpoTextos}>
-            <Text style={styles.textoNombreReciente} numberOfLines={1}>
-              {animal.nombre || 'Búfala N/A'}
-            </Text>
+            <View style={styles.filaNombreBadge}>
+              <Text style={styles.textoNombreReciente} numberOfLines={1}>
+                {animal.nombre || `${obtenerNombreAnimal(animal.especie || 'bufalino', animal.sexo)} S/N`}
+              </Text>
+              <View
+                style={[
+                  styles.badgeEspecie,
+                  esBovino ? styles.badgeBovino : styles.badgeBufalino,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.textoBadgeEspecie,
+                    esBovino ? styles.textoBadgeBovino : styles.textoBadgeBufalino,
+                  ]}
+                >
+                  {esBovino ? '🐄 Bov' : '🐃 Buf'}
+                </Text>
+              </View>
+            </View>
             <Text style={styles.textoSubtituloReciente}>{statusLabel}</Text>
           </View>
 
@@ -140,5 +159,31 @@ const styles = StyleSheet.create({
     color: COLORES.limaBrillante, 
     marginTop: 2,
     letterSpacing: 0.5,
+  },
+  filaNombreBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  badgeEspecie: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  badgeBovino: {
+    backgroundColor: COLORES.badgeBovinoFondo,
+  },
+  badgeBufalino: {
+    backgroundColor: COLORES.badgeBufalinoFondo,
+  },
+  textoBadgeEspecie: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  textoBadgeBovino: {
+    color: COLORES.badgeBovinoTexto,
+  },
+  textoBadgeBufalino: {
+    color: COLORES.badgeBufalinoTexto,
   },
 });

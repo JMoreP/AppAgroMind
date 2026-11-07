@@ -13,7 +13,7 @@ export function ListaPesajesRecientes({ pesajes, onEliminar }: Props) {
   const confirmarEliminacion = (pesaje: PesajeConAnimal) => {
     Alert.alert(
       'Eliminar Pesaje',
-      `¿Deseas eliminar el pesaje de ${pesaje.litros} L para la búfala #${pesaje.arete}?`,
+      `¿Deseas eliminar el pesaje de ${pesaje.litros} L para el animal #${pesaje.arete}?`,
       [
         { text: 'Cancelar', style: 'cancel' },
         { 
@@ -47,7 +47,7 @@ export function ListaPesajesRecientes({ pesajes, onEliminar }: Props) {
 
           <View style={styles.infoCol}>
             <Text style={styles.nombreTexto} numberOfLines={1}>
-              {item.nombre || 'Búfala'}
+              {item.nombre || 'Animal'}
             </Text>
             {item.loteId && (
               <Text style={styles.loteTexto}>{item.loteId}</Text>

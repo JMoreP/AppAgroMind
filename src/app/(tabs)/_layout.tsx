@@ -4,11 +4,10 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORES } from "../../shared/theme/colores";
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Home, Settings } from 'lucide-react-native';
+import { Home, Beef, Syringe } from 'lucide-react-native';
 
 // ── Botón central flotante (Estilo iOS Premium Flotante) ───────────────
 function BotonCentralPersonalizado(props: any) {
-  const activo = props.accessibilityState?.selected;
   return (
     <View style={[props.style, { alignItems: 'center' }]} pointerEvents="box-none">
       <View style={estilos.dipContenedor} pointerEvents="box-none">
@@ -48,7 +47,7 @@ export default function LayoutTabs() {
         name="rebano"
         options={{
           title: "Herd",
-          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="cow" size={30} color={color} />,
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="cow" size={30} color={color as string} />,
         }}
       />
 
@@ -60,10 +59,18 @@ export default function LayoutTabs() {
       />
 
       <Tabs.Screen
-        name="ajustes"
+        name="ceba"
         options={{
-          title: "Settings",
-          tabBarIcon: ({ color }) => <Settings size={26} color={color} strokeWidth={color === COLORES.negroIndustrial ? 2.5 : 2} />,
+          title: "Ceba",
+          tabBarIcon: ({ color }) => <Beef size={26} color={color} strokeWidth={color === COLORES.negroIndustrial ? 2.5 : 2} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="sanidad"
+        options={{
+          title: "Sanidad",
+          tabBarIcon: ({ color }) => <Syringe size={26} color={color} strokeWidth={color === COLORES.negroIndustrial ? 2.5 : 2} />,
         }}
       />
     </Tabs>

@@ -6,7 +6,10 @@ import {
   ScrollView, 
   Pressable, 
   ActivityIndicator, 
-  StatusBar 
+  StatusBar,
+  Alert,
+  Modal,
+  TextInput
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,9 +24,14 @@ import {
   ChevronRight, 
   Calendar,
   Layers,
-  RotateCcw
+  RotateCcw,
+  FileText,
+  DollarSign,
+  Edit3
 } from 'lucide-react-native';
 import { COLORES } from '../../shared/theme/colores';
+import { useReportes } from '../../features/reportes/hooks/useReportes';
+import { useConfiguracion } from '../../features/configuracion/hooks/useConfiguracion';
 import { PesajeLecheRepository } from '../../features/ordeno/repositories/PesajeLecheRepository';
 import { 
   MetricaHatoDiaria, 
@@ -49,6 +57,47 @@ export default function PantallaDashboardHato() {
   const [pdpHato7Dias, setPdpHato7Dias] = useState(0);
   const [topProductoras, setTopProductoras] = useState<ProductoraTopRanking[]>([]);
   const [alertasCaida, setAlertasCaida] = useState<AlertaHatoProduccion[]>([]);
+  const { generando: generandoPDF, exportarReporteProduccion } = useReportes();
+  const { configuracion, actualizarPrecioLeche } = useConfiguracion();
+
+  // Estados de edición de precio de leche
+  const [modalPrecioVisible, setModalPrecioVisible] = useState(false);
+  const [precioInput, setPrecioInput] = useState('');
+  const [guardandoPrecio, setGuardandoPrecio] = useState(false);
+
+  const abrirModalPrecio = () => {
+    setPrecioInput(configuracion.precioLeche > 0 ? configuracion.precioLeche.toString() : '');
+    setModalPrecioVisible(true);
+  };
+
+  const guardarNuevoPrecio = async () => {
+    const limpio = precioInput.replace(',', '.').trim();
+    const parsed = parseFloat(limpio);
+    if (isNaN(parsed) || parsed < 0) {
+      Alert.alert('Precio inválido', 'Ingresa un monto numérico válido mayor o igual a 0.');
+      return;
+    }
+    setGuardandoPrecio(true);
+    try {
+      await actualizarPrecioLeche(parsed);
+      setModalPrecioVisible(false);
+    } catch {
+      Alert.alert('Error', 'No se pudo actualizar el precio de la leche.');
+    } finally {
+      setGuardandoPrecio(false);
+    }
+  };
+
+  const handleExportarPDF = async () => {
+    try {
+      const ahora = new Date();
+      await exportarReporteProduccion(ahora.getFullYear(), ahora.getMonth() + 1);
+    } catch (err) {
+      if (err instanceof Error) {
+        Alert.alert('Error al generar reporte', err.message);
+      }
+    }
+  };
 
   const cargarDatos = useCallback(async () => {
     setCargando(true);
@@ -181,6 +230,22 @@ export default function PantallaDashboardHato() {
 
       <ScrollView contentContainerStyle={styles.scrollContenido} showsVerticalScrollIndicator={false}>
         
+        {/* Botón: Generar Reporte de Producción (PDF) */}
+        <Pressable
+          style={styles.botonExportarProduccion}
+          onPress={handleExportarPDF}
+          disabled={generandoPDF}
+        >
+          {generandoPDF ? (
+            <ActivityIndicator size="small" color={COLORES.blanco} />
+          ) : (
+            <>
+              <FileText size={18} color={COLORES.blanco} />
+              <Text style={styles.textoBotonExportarProduccion}>Generar Reporte de Producción (PDF)</Text>
+            </>
+          )}
+        </Pressable>
+
         {/* ── SECCIÓN 1: KPIS DEL HATO (GRID 2x2) ── */}
         <Text style={styles.seccionTitulo}>Métricas Clave del Hato</Text>
         
@@ -214,12 +279,12 @@ export default function PantallaDashboardHato() {
               <Text style={styles.kpiValorGrande}>
                 {resumenHoy.promedioPorBufala.toFixed(1)}
               </Text>
-              <Text style={styles.kpiUnidad}>L/búfala</Text>
+              <Text style={styles.kpiUnidad}>L/animal</Text>
             </View>
             <Text style={styles.kpiDetalle}>Promedio por cabeza</Text>
           </View>
 
-          {/* Card 3: Búfalas ordeñadas hoy */}
+          {/* Card 3: Animales ordeñados hoy */}
           <View style={styles.tarjetaKpi}>
             <View style={styles.kpiCabecera}>
               <View style={styles.circuloIconoAzul}>
@@ -233,7 +298,7 @@ export default function PantallaDashboardHato() {
               </Text>
               <Text style={styles.kpiUnidad}>cabezas</Text>
             </View>
-            <Text style={styles.kpiDetalle}>Búfalas en lote activo</Text>
+            <Text style={styles.kpiDetalle}>Animales en lote activo</Text>
           </View>
 
           {/* Card 4: PDP promedio 7d */}
@@ -254,6 +319,44 @@ export default function PantallaDashboardHato() {
           </View>
         </View>
 
+        {/* ── CARD: ESTIMACIÓN DE INGRESOS (LECHERÍA) ── */}
+        <View style={styles.tarjetaIngresos}>
+          <View style={styles.filaCabeceraIngresos}>
+            <View style={styles.iconoYTituloIngresos}>
+              <View style={styles.circuloIconoIngresos}>
+                <DollarSign size={18} color={COLORES.verdeOscuro} />
+              </View>
+              <View>
+                <Text style={styles.tituloIngresos}>Ingresos Estimados Hoy</Text>
+                <Text style={styles.subtituloIngresos}>
+                  {configuracion.precioLeche > 0 
+                    ? `Tasa: ${configuracion.moneda} ${configuracion.precioLeche.toFixed(2)} / L`
+                    : 'Sin precio configurado'}
+                </Text>
+              </View>
+            </View>
+            <Pressable
+              style={styles.botonEditarPrecio}
+              onPress={abrirModalPrecio}
+              accessibilityRole="button"
+              accessibilityLabel="Editar precio de leche"
+            >
+              <Edit3 size={14} color={COLORES.verdeOscuro} />
+              <Text style={styles.textoBotonEditarPrecio}>Precio</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.filaValorIngreso}>
+            <Text style={styles.monedaIngreso}>{configuracion.moneda}</Text>
+            <Text style={styles.valorIngresoGrande}>
+              {(resumenHoy.totalLitrosDia * (configuracion.precioLeche || 0)).toFixed(2)}
+            </Text>
+          </View>
+          <Text style={styles.detalleIngreso}>
+            {resumenHoy.totalLitrosDia.toFixed(1)} L producidos hoy × {configuracion.moneda} {(configuracion.precioLeche || 0).toFixed(2)}
+          </Text>
+        </View>
+
         {/* ── SECCIÓN 2: GRÁFICA DE EVOLUCIÓN DEL HATO ── */}
         <Text style={styles.seccionTitulo}>Evolución Diaria del Hato</Text>
         
@@ -271,8 +374,8 @@ export default function PantallaDashboardHato() {
           onCambiarRango={setRango}
         />
 
-        {/* ── SECCIÓN 3: TOP 10 BÚFALAS PRODUCTORAS (ÚLTIMOS 30 DÍAS) ── */}
-        <Text style={styles.seccionTitulo}>Top 10 Búfalas Productoras (30 Días)</Text>
+        {/* ── SECCIÓN 3: TOP 10 ANIMALES PRODUCTORES (ÚLTIMOS 30 DÍAS) ── */}
+        <Text style={styles.seccionTitulo}>Top 10 Animales Productores (30 Días)</Text>
 
         {topProductoras.length === 0 ? (
           <View style={styles.tarjetaVacia}>
@@ -297,11 +400,11 @@ export default function PantallaDashboardHato() {
                     </Text>
                   </View>
 
-                  {/* Info de la Búfala */}
+                  {/* Info del Animal */}
                   <View style={styles.infoBufalaRanking}>
                     <Text style={styles.areteRanking}>#{productora.arete}</Text>
                     <Text style={styles.nombreRanking}>
-                      {productora.nombre || productora.raza || 'Búfala'}
+                      {productora.nombre || productora.raza || 'Animal'}
                     </Text>
                   </View>
 
@@ -334,7 +437,7 @@ export default function PantallaDashboardHato() {
               <View style={styles.infoAlertaOptima}>
                 <Text style={styles.tituloAlertaOptima}>SIN ALERTAS DE PRODUCCIÓN</Text>
                 <Text style={styles.subtituloAlertaOptima}>
-                  Todas las búfalas mantienen producción estable sin caídas superiores al 25%.
+                  Todos los animales mantienen producción estable sin caídas superiores al 25%.
                 </Text>
               </View>
             </View>
@@ -348,7 +451,7 @@ export default function PantallaDashboardHato() {
                     <AlertTriangle size={18} color={COLORES.rojoError} />
                   </View>
                   <View style={styles.infoAlertaTexto}>
-                    <Text style={styles.areteAlerta}>#{alerta.arete} — {alerta.nombre || 'Búfala'}</Text>
+                    <Text style={styles.areteAlerta}>#{alerta.arete} — {alerta.nombre || 'Animal'}</Text>
                     <Text style={styles.detalleCaidaAlerta}>
                       {alerta.promedioReciente} L/d recientes vs {alerta.promedioPrevio} L/d previos
                     </Text>
@@ -402,7 +505,7 @@ export default function PantallaDashboardHato() {
                         <View style={styles.infoValoresHistorial}>
                           <Text style={styles.litrosHistorial}>{dia.litros.toFixed(1)} L</Text>
                           <Text style={styles.bufalasHistorial}>
-                            {dia.bufalas} búfalas • PDP: {dia.pdp.toFixed(1)} L
+                            {dia.bufalas} animales • PDP: {dia.pdp.toFixed(1)} L
                           </Text>
                         </View>
                       </View>
@@ -426,6 +529,54 @@ export default function PantallaDashboardHato() {
         )}
 
       </ScrollView>
+
+      {/* Modal de edición rápida de precio de leche */}
+      <Modal
+        visible={modalPrecioVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalPrecioVisible(false)}
+      >
+        <View style={styles.overlayModal}>
+          <View style={styles.contenedorModal}>
+            <Text style={styles.tituloModalPrecio}>Editar Precio de Leche</Text>
+            <Text style={styles.subtituloModalPrecio}>
+              {`Define el precio por litro en ${configuracion.moneda}`}
+            </Text>
+
+            <TextInput
+              style={styles.inputModalPrecio}
+              keyboardType="decimal-pad"
+              placeholder="0.00"
+              placeholderTextColor={COLORES.textoMudo}
+              value={precioInput}
+              onChangeText={setPrecioInput}
+              autoFocus
+            />
+
+            <View style={styles.filaBotonesModal}>
+              <Pressable
+                style={styles.botonCancelarModal}
+                onPress={() => setModalPrecioVisible(false)}
+                disabled={guardandoPrecio}
+              >
+                <Text style={styles.textoBotonCancelarModal}>Cancelar</Text>
+              </Pressable>
+              <Pressable
+                style={styles.botonGuardarModal}
+                onPress={guardarNuevoPrecio}
+                disabled={guardandoPrecio}
+              >
+                {guardandoPrecio ? (
+                  <ActivityIndicator size="small" color={COLORES.blanco} />
+                ) : (
+                  <Text style={styles.textoBotonGuardarModal}>Guardar</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -867,5 +1018,164 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: COLORES.verdeEsmeralda,
+  },
+  botonExportarProduccion: {
+    backgroundColor: COLORES.verdeEsmeralda,
+    borderRadius: 14,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  textoBotonExportarProduccion: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORES.blanco,
+  },
+  tarjetaIngresos: {
+    backgroundColor: COLORES.blanco,
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORES.bordeClaro,
+    marginBottom: 20,
+  },
+  filaCabeceraIngresos: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  iconoYTituloIngresos: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  circuloIconoIngresos: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: COLORES.verdeClaroFondo,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tituloIngresos: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORES.tealOscuro,
+  },
+  subtituloIngresos: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: COLORES.textoMudo,
+    marginTop: 1,
+  },
+  botonEditarPrecio: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORES.verdeClaroFondo,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORES.esmeraldaNeon,
+  },
+  textoBotonEditarPrecio: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORES.verdeOscuro,
+  },
+  filaValorIngreso: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+  },
+  monedaIngreso: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORES.verdeOscuro,
+  },
+  valorIngresoGrande: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: COLORES.tealOscuro,
+    letterSpacing: -0.5,
+  },
+  detalleIngreso: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: COLORES.textoMudo,
+    marginTop: 4,
+  },
+  overlayModal: {
+    flex: 1,
+    backgroundColor: COLORES.negroOverlay,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  contenedorModal: {
+    width: '100%',
+    backgroundColor: COLORES.blanco,
+    borderRadius: 20,
+    padding: 22,
+  },
+  tituloModalPrecio: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORES.tealOscuro,
+    marginBottom: 4,
+  },
+  subtituloModalPrecio: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORES.textoMudo,
+    marginBottom: 16,
+  },
+  inputModalPrecio: {
+    height: 50,
+    backgroundColor: COLORES.grisBuscador,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORES.tealOscuro,
+    borderWidth: 1,
+    borderColor: COLORES.bordeClaro,
+    marginBottom: 20,
+  },
+  filaBotonesModal: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  botonCancelarModal: {
+    flex: 1,
+    height: 46,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORES.grisBuscador,
+  },
+  textoBotonCancelarModal: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORES.textoMudo,
+  },
+  botonGuardarModal: {
+    flex: 1,
+    height: 46,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORES.verdeEsmeralda,
+  },
+  textoBotonGuardarModal: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORES.blanco,
   },
 });

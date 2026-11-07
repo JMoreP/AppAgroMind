@@ -73,7 +73,7 @@ export default function PantallaOrdeñoRapido() {
 
     const litrosNum = parseFloat(litrosInput);
     if (!areteInput.trim()) {
-      setMensajeError('Ingresa el número de arete de la búfala.');
+      setMensajeError('Ingresa el número de arete del animal.');
       return;
     }
     if (isNaN(litrosNum) || litrosNum <= 0) {
@@ -243,7 +243,7 @@ export default function PantallaOrdeñoRapido() {
                 </View>
                 <View style={styles.datosAnimalMini}>
                   <Text style={styles.nombreAnimalMini}>
-                    {animalActual.nombre || `Búfala #${animalActual.arete}`}
+                    {animalActual.nombre || `Animal #${animalActual.arete}`}
                   </Text>
                   <Text style={styles.subtituloAnimalMini}>
                     {animalActual.raza || 'Mestiza'} • {animalActual.estadoReproductivo.toUpperCase()}

@@ -25,6 +25,8 @@ export default function PantallaRebano() {
     todosAnimalesCount,
     busqueda, 
     setBusqueda, 
+    filtroEspecie,
+    setFiltroEspecie,
     filtroEstadoVida,
     setFiltroEstadoVida,
     filtroEstadoReproductivo,
@@ -108,6 +110,60 @@ export default function PantallaRebano() {
         </View>
       )}
 
+      {/* ── Filtro Rápido por Especie ── */}
+      <View style={styles.contenedorFiltroEspecie}>
+        <Pressable
+          style={[
+            styles.chipEspecie,
+            filtroEspecie === 'todos' && styles.chipEspecieActivo,
+          ]}
+          onPress={() => setFiltroEspecie('todos')}
+        >
+          <Text
+            style={[
+              styles.textoChipEspecie,
+              filtroEspecie === 'todos' && styles.textoChipEspecieActivo,
+            ]}
+          >
+            Todas
+          </Text>
+        </Pressable>
+
+        <Pressable
+          style={[
+            styles.chipEspecie,
+            filtroEspecie === 'bovino' && styles.chipEspecieActivo,
+          ]}
+          onPress={() => setFiltroEspecie('bovino')}
+        >
+          <Text
+            style={[
+              styles.textoChipEspecie,
+              filtroEspecie === 'bovino' && styles.textoChipEspecieActivo,
+            ]}
+          >
+            🐄 Bovinos
+          </Text>
+        </Pressable>
+
+        <Pressable
+          style={[
+            styles.chipEspecie,
+            filtroEspecie === 'bufalino' && styles.chipEspecieActivo,
+          ]}
+          onPress={() => setFiltroEspecie('bufalino')}
+        >
+          <Text
+            style={[
+              styles.textoChipEspecie,
+              filtroEspecie === 'bufalino' && styles.textoChipEspecieActivo,
+            ]}
+          >
+            🐃 Bufalinos
+          </Text>
+        </Pressable>
+      </View>
+
       {/* ── Barra Horizontal Filtro Rápido por Lote ── */}
       <View style={styles.contenedorLotesRapidos}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollLotesChips}>
@@ -161,6 +217,22 @@ export default function PantallaRebano() {
                 <Text style={styles.textoResetFiltros}>Limpiar</Text>
               </Pressable>
             )}
+          </View>
+
+          {/* Filtro Especie en panel */}
+          <Text style={styles.labelFiltro}>Especie:</Text>
+          <View style={styles.rowChips}>
+            {(['todos', 'bovino', 'bufalino'] as const).map(esp => (
+              <Pressable
+                key={esp}
+                style={[styles.chipFiltro, filtroEspecie === esp && styles.chipFiltroActivo]}
+                onPress={() => setFiltroEspecie(esp)}
+              >
+                <Text style={[styles.textoChipFiltro, filtroEspecie === esp && styles.textoChipFiltroActivo]}>
+                  {esp === 'todos' ? 'Todas' : esp === 'bovino' ? '🐄 Bovinos' : '🐃 Bufalinos'}
+                </Text>
+              </Pressable>
+            ))}
           </View>
 
           {/* Filtro Estado de Vida */}
@@ -514,5 +586,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORES.textoMudo,
     fontWeight: '500',
-  }
+  },
+  contenedorFiltroEspecie: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 24,
+    marginBottom: 8,
+  },
+  chipEspecie: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 12,
+    backgroundColor: COLORES.fondoApp,
+    borderWidth: 1,
+    borderColor: COLORES.bordeClaro,
+  },
+  chipEspecieActivo: {
+    backgroundColor: COLORES.tealOscuro,
+    borderColor: COLORES.tealOscuro,
+  },
+  textoChipEspecie: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORES.textoMudo,
+  },
+  textoChipEspecieActivo: {
+    color: COLORES.blanco,
+    fontWeight: '800',
+  },
 });
